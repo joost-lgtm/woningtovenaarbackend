@@ -311,10 +311,14 @@ Draft short, factual answers to the **Top-10 questions**, based on the available
 - Write a **scannable description** with **plain-text headings** (no bold/markdown), which demonstrably covers the **confirmed Q→A**, in the right tone and **compliant**.
 
 ## A. Headings style (Funda/Pararius)
-- Use **short headings** as a **separate line** with **uppercase** or **title + colon**.  
+- Use **short headings** as a **separate line** formatted with `**double asterisks**` for bold.
+- Headings should be in UPPERCASE or Title Case.
   Example:  
-  `THE LAYOUT` *(or)* `The layout:`  
-- No ALL CAPS in running sentences; headings only.
+  `**INTRODUCTION**`  
+  `**THE LAYOUT**`  
+  `**LIVING HERE**`
+- No ALL CAPS in running sentences; only in headings.
+- Each heading must be on its own line with a blank line before and after.
 
 ## B. Base set of headings (always available)
 This is your **canon**. Each case gets 4–6 headings from this.  
@@ -367,51 +371,54 @@ This is your **canon**. Each case gets 4–6 headings from this.
 - No repetition of hard fields, unless functional (e.g., energy label → sense of monthly costs).
 
 ## G. Output format (skeleton, **BUY**)
-INTRODUCTION  
+
+**INTRODUCTION**  
 <short promise + atmosphere, no number dump>
 
-LIVING HERE  
+**LIVING HERE**  
 <experience: light/flow, 1–2 scenes; weave in suitable Q→A>
 
-THE LAYOUT  
+**THE LAYOUT**  
 <smooth tour ground floor → floor(s); weave in layout answers>
 
-HIGHLIGHTS  
+**HIGHLIGHTS**  
 <3–6 differentiators from checkbox + possibly 1 unique detail; provable and compact>
 
-NEIGHBORHOOD & ACCESSIBILITY  
+**NEIGHBORHOOD & ACCESSIBILITY**  
 <facilities/public transport/greenery, tailored to persona; neutral if data unknown>
 
-PRACTICAL & FUTURE  
+**PRACTICAL & FUTURE**  
 <turn-key/maintenance/energy; what this means; no overclaims>
 
-VIEWING  
+**VIEWING**  
 <soft CTA>
 
 ## H. Output format (skeleton, **RENT**)
-INTRODUCTION  
+
+**INTRODUCTION**  
 <what + for whom suitable>
 
-KEY CERTAINTIES  
+**KEY CERTAINTIES**  
 <available-from, (un)furnished/semi-furnished, rent + service charges, deposit, contract (duration)>
 
-THE LAYOUT  
+**THE LAYOUT**  
 <core spaces/finish; compact>
 
-COMFORT & ENERGY  
+**COMFORT & ENERGY**  
 <comfort details; neutral indication of costs; no hard numbers without source>
 
-LOCATION  
+**LOCATION**  
 <public transport/center/work/study — relevant to persona>
 
-APPLY  
+**APPLY**  
 <clear CTA + documents>
 
 ## I. Rules (reminder)
 - Language level **B1/B2**, human, precise.  
 - **All 10 Q→A** come back **explicitly or implicitly**; no loose ends.  
-- No discrimination/overclaims/ALL CAPS in running sentences.  
+- No discrimination/overclaims/ALL CAPS in running sentences.
 - Never invent facts; formulate neutrally when details are unknown or ask 1 follow-up question.
+- **CRITICAL**: All section headings in the final description must use `**HEADING**` format (bold Markdown).
 
 ---
 

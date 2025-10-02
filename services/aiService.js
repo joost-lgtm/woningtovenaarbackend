@@ -34,10 +34,10 @@ class AIService {
       ];
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4',
+        model: 'gpt-5',
         messages: fullMessages,
-        max_tokens: 2000,
-        temperature: 0.7
+        // max_tokens: 2000,
+        // temperature: 0.7
       });
 
       return {

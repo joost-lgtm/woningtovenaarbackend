@@ -23,7 +23,7 @@ router.post('/start', async (req, res) => {
       language,
       messages: [initialMessage], // save the first assistant message
       status: 'active',
-      totalTokens: 0
+      tokens: { input: 0, output: 0, total: 0 }
     });
 
     await conversation.save();
@@ -62,42 +62,54 @@ router.post('/message', async (req, res) => {
       role: 'user',
       content: message,
       timestamp: new Date()
+      // user message usually doesn’t have tokens
     });
 
     // 👇 If first user message, set the title
     const userMessagesCount = conversation.messages.filter(m => m.role === 'user').length;
     if (userMessagesCount === 1) {
-      // take only first 50 chars to avoid huge titles
       conversation.title = message.substring(0, 50) + (message.length > 50 ? "..." : "");
     }
 
     // Get AI response
     const response = await aiService.chat(conversation.messages);
 
+    console.log(response, "AI response");
 
-    console.log(response,"responseresponse")
+    // Extract tokens safely
+    const inputTokens = response.tokens?.input || 0;
+    const outputTokens = response.tokens?.output || 0;
+    const totalTokens = response.tokens?.total || (inputTokens + outputTokens);
 
     // Add AI response
     conversation.messages.push({
       role: 'assistant',
       content: response.content,
       timestamp: new Date(),
-      tokens: response.tokens
+      tokens: {
+        input: inputTokens,
+        output: outputTokens,
+        total: totalTokens
+      }
     });
 
-    // Update tokens
-    if (response.tokens) {
-      conversation.totalTokens += response.tokens.total || 0;
-    }
+    // Update conversation-level tokens
+    conversation.tokens.input = (conversation.tokens.input || 0) + inputTokens;
+    conversation.tokens.output = (conversation.tokens.output || 0) + outputTokens;
+    conversation.tokens.total = (conversation.tokens.total || 0) + totalTokens;
 
     await conversation.save();
 
     res.json({
       message: response.content,
       sessionId,
-      totalTokens: conversation.totalTokens,
-      tokensUsed: response.tokens,
-      title: conversation.title 
+      tokensUsed: {
+        input: inputTokens,
+        output: outputTokens,
+        total: totalTokens
+      },
+      conversationTokens: conversation.tokens,
+      title: conversation.title
     });
 
   } catch (error) {
@@ -105,6 +117,7 @@ router.post('/message', async (req, res) => {
     res.status(500).json({ message: 'Server error processing your message. Please try again.' });
   }
 });
+
 
 
 // Get conversation history
@@ -121,7 +134,7 @@ router.get('/:sessionId', async (req, res) => {
     res.json({
       sessionId: conversation.sessionId,
       messages: conversation.messages,
-      totalTokens: conversation.totalTokens,
+      tokens: conversation.tokens,
       status: conversation.status,
       createdAt: conversation.createdAt,
       updatedAt: conversation.updatedAt
@@ -138,7 +151,7 @@ router.get('/', async (req, res) => {
     const conversations = await Conversation.find({})
       .sort({ updatedAt: -1 })
       .limit(20)
-      .select('sessionId status title createdAt updatedAt totalTokens');
+      .select('sessionId status title createdAt updatedAt tokens');
 
     res.json(conversations);
   } catch (error) {
@@ -164,7 +177,7 @@ router.post('/:sessionId/end', async (req, res) => {
     res.json({
       message: 'Conversation ended successfully',
       sessionId: conversation.sessionId,
-      totalTokens: conversation.totalTokens
+      tokens: conversation.tokens
     });
   } catch (error) {
     console.error('End conversation error:', error);

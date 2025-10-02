@@ -36,9 +36,10 @@ const conversationSchema = new mongoose.Schema({
     enum: ['active', 'completed', 'abandoned'],
     default: 'active'
   },
-  totalTokens: {
-    type: Number,
-    default: 0
+  tokens: {
+    input: Number,
+    output: Number,
+    total: Number
   },
   title: { type: String, default: '' },
   aiProvider: {

@@ -1,27 +1,42 @@
 const OpenAI = require('openai');
 const axios = require('axios');
-const { SYSTEM_PROMPTS } = require('../prompts');
+const fs = require('fs');
+const path = require('path');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+// Load the WoningTovenaar system prompt from file
+const SYSTEM_PROMPT_PATH = path.join(__dirname, '../woningtovenaar-prompt.txt');
+
 class AIService {
   constructor() {
-    this.preferredProvider = 'openai'; // Dynamic switching logic
+    this.preferredProvider = 'openai';
+    this.systemPrompt = this.loadSystemPrompt();
   }
 
-  async callOpenAI(prompt, systemPrompt = '', maxTokens = 1000) {
+  loadSystemPrompt() {
     try {
-      const messages = [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt }
-      ].filter(msg => msg.content);
+      return fs.readFileSync(SYSTEM_PROMPT_PATH, 'utf8');
+    } catch (error) {
+      console.error('Error loading system prompt:', error);
+      throw new Error('Failed to load WoningTovenaar system prompt');
+    }
+  }
+
+  async callOpenAI(messages) {
+    try {
+      // Prepare messages with system prompt
+      const fullMessages = [
+        { role: 'system', content: this.systemPrompt },
+        ...messages
+      ];
 
       const response = await openai.chat.completions.create({
         model: 'gpt-4',
-        messages,
-        max_tokens: maxTokens,
+        messages: fullMessages,
+        max_tokens: 2000,
         temperature: 0.7
       });
 
@@ -40,52 +55,44 @@ class AIService {
     }
   }
 
-  async callGemini(prompt, systemPrompt = '') {
+  async callGemini(messages) {
     try {
-      const fullPrompt = systemPrompt ? `${systemPrompt}\n\nUser: ${prompt}` : prompt;
-      
+      // Only take last user message
+      const userMessage = messages.findLast(msg => msg.role === 'user')?.content || "";
+      const fullPrompt = `${this.systemPrompt}\n\n${userMessage}`;
+  
       const response = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
         {
-          contents: [{
-            parts: [{ text: fullPrompt }]
-          }]
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: fullPrompt }]
+            }
+          ]
         },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
+        { headers: { 'Content-Type': 'application/json' } }
       );
-
-      const content = response.data.candidates[0].content.parts[0].text;
-      const inputTokens = response.data.usageMetadata?.promptTokenCount || 0;
-      const outputTokens = response.data.usageMetadata?.candidatesTokenCount || 0;
-
-      return {
-        content,
-        tokens: {
-          input: inputTokens,
-          output: outputTokens,
-          total: inputTokens + outputTokens
-        },
-        provider: 'gemini'
-      };
+  
+      const content = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      return { content, provider: 'gemini' };
     } catch (error) {
-      console.error('Gemini API Error:', error);
+      console.error("Gemini API Error:", error.response?.data || error.message);
       throw new Error('Failed to get AI response from Gemini');
     }
   }
+  
+  
 
-  // Smart orchestration - tries OpenAI first, falls back to Gemini
-  async callAI(prompt, systemPrompt = '', maxTokens = 1000, forceProvider = null) {
+  // Main chat method with fallback
+  async chat(messages, forceProvider = null) {
     const provider = forceProvider || this.preferredProvider;
     
     try {
       if (provider === 'openai') {
-        return await this.callOpenAI(prompt, systemPrompt, maxTokens);
+        return await this.callOpenAI(messages);
       } else {
-        return await this.callGemini(prompt, systemPrompt);
+        return await this.callGemini(messages);
       }
     } catch (error) {
       // Fallback mechanism
@@ -93,53 +100,11 @@ class AIService {
       console.log(`Falling back to ${fallbackProvider}`);
       
       if (fallbackProvider === 'openai') {
-        return await this.callOpenAI(prompt, systemPrompt, maxTokens);
+        return await this.callOpenAI(messages);
       } else {
-        return await this.callGemini(prompt, systemPrompt);
+        return await this.callGemini(messages);
       }
     }
-  }
-
-  async generatePersona(conversationData) {
-    const { transaction, propertyType, targetAudience, basicFeatures } = conversationData;
-    
-    const prompt = `Create a detailed buyer persona for:
-    - Transaction: ${transaction}
-    - Property: ${propertyType}
-    - Target Audience: ${targetAudience}
-    - Basic Features: ${basicFeatures}
-    
-    Generate a comprehensive persona profile.`;
-
-    return this.callAI(prompt, SYSTEM_PROMPTS.PERSONA_GENERATOR, 800);
-  }
-
-  async generateQuestions(conversationData) {
-    const { transaction, propertyType, targetAudience } = conversationData;
-    
-    const prompt = `Generate top 10 questions for:
-    - Transaction: ${transaction}
-    - Property: ${propertyType}  
-    - Target Audience: ${targetAudience}`;
-
-    return this.callAI(prompt, SYSTEM_PROMPTS.QUESTIONS_GENERATOR, 400);
-  }
-
-  async generateAnswers(questions, conversationData) {
-    const prompt = `Answer these questions based on the property data:
-    Questions: ${JSON.stringify(questions)}
-    Property Data: ${JSON.stringify(conversationData)}`;
-
-    return this.callAI(prompt, SYSTEM_PROMPTS.ANSWERS_GENERATOR, 600);
-  }
-
-  async generateListing(conversationData) {
-    const prompt = `Generate a complete property listing using ALL this data:
-    ${JSON.stringify(conversationData, null, 2)}
-    
-    Ensure all user inputs are visibly incorporated into the final text.`;
-
-    return this.callAI(prompt, SYSTEM_PROMPTS.LISTING_GENERATOR, 1200);
   }
 }
 

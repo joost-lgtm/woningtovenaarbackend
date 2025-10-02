@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 8000;
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'https://woningtovenaarfrontend-production.up.railway.app',
+  origin:'*',
   credentials: true
 }));
 

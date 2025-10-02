@@ -6,34 +6,10 @@ const conversationSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  currentStep: {
-    type: Number,
-    default: 1,
-    min: 1,
-    max: 8
-  },
   language: {
     type: String,
     enum: ['en', 'nl'],
     default: 'en'
-  },
-  data: {
-    transaction: String,
-    propertyType: String,
-    basicFeatures: String,
-    highlights: [String],
-    uniqueDetail: String,
-    targetAudience: String,
-    secondaryAudience: String,
-    persona: mongoose.Schema.Types.Mixed,
-    questions: [String],
-    answers: [String],
-    finalListing: String,
-    approved: {
-      persona: { type: Boolean, default: false },
-      questions: { type: Boolean, default: false },
-      answers: { type: Boolean, default: false }
-    }
   },
   messages: [{
     role: {
@@ -45,7 +21,6 @@ const conversationSchema = new mongoose.Schema({
       type: String,
       required: true
     },
-    step: Number,
     timestamp: {
       type: Date,
       default: Date.now
@@ -54,10 +29,6 @@ const conversationSchema = new mongoose.Schema({
       input: Number,
       output: Number,
       total: Number
-    },
-    data: {
-      type: mongoose.Schema.Types.Mixed,
-      default: {}
     }
   }],
   status: {
@@ -69,6 +40,7 @@ const conversationSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  title: { type: String, default: '' },
   aiProvider: {
     type: String,
     enum: ['openai', 'gemini'],

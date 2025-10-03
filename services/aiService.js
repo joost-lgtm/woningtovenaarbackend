@@ -13,8 +13,7 @@ class AIService {
   constructor() {
     this.preferredProvider = 'openai';
     this.systemPrompt = this.loadSystemPrompt();
-    // Adjust based on your needs - this keeps last N message pairs
-    this.maxMessageHistory = 10; // Keep last 10 messages (5 exchanges)
+
   }
 
   loadSystemPrompt() {
@@ -26,36 +25,14 @@ class AIService {
     }
   }
 
-  /**
-   * Truncate message history to prevent context overflow
-   * Keeps system prompt + recent conversation history
-   */
-  truncateMessages(messages) {
-    // If messages are within limit, return as-is
-    if (messages.length <= this.maxMessageHistory) {
-      return messages;
-    }
 
-    // Keep the most recent messages
-    // Always keep system message if it exists
-    const systemMessages = messages.filter(m => m.role === 'system');
-    const nonSystemMessages = messages.filter(m => m.role !== 'system');
-    
-    // Take last N messages
-    const recentMessages = nonSystemMessages.slice(-this.maxMessageHistory);
-    
-    return [...systemMessages, ...recentMessages];
-  }
 
   async callOpenAI(messages) {
     try {
-      // Truncate messages to manage context length
-      const truncatedMessages = this.truncateMessages(messages);
-
       // Prepare messages with system prompt
       const fullMessages = [
         { role: 'system', content: this.systemPrompt },
-        ...truncatedMessages
+        ...messages
       ];
 
       const response = await openai.chat.completions.create({
@@ -64,6 +41,8 @@ class AIService {
         // max_tokens: 2000,
         // temperature: 0.7,
       });
+
+      console.log(fullMessages,"fullMessagesfullMessages")
       
 
       return {
@@ -83,11 +62,8 @@ class AIService {
 
   async callGemini(messages) {
     try {
-      // Truncate messages for Gemini as well
-      const truncatedMessages = this.truncateMessages(messages);
-
       // Build conversation history for Gemini
-      const geminiContents = truncatedMessages.map(msg => ({
+      const geminiContents = messages.map(msg => ({
         role: msg.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: msg.content }]
       }));

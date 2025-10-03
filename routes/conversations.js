@@ -14,8 +14,11 @@ router.post('/start', async (req, res) => {
     // Initial assistant message
     const initialMessage = {
       role: 'assistant',
-      content: "👋 Welcome to WoningTovenaar! I'm here to guide you with your property listings. How can I assist you today?",
+      // content: "👋 Welcome to WoningTovenaar! I'm here to guide you with your property listings. How can I assist you today?",
+      content: "👋 Welkom bij WoningTovenaar! Ik ben hier om je te helpen met je woningaanbiedingen. Hoe kan ik je vandaag van dienst zijn?",
+
       timestamp: new Date()
+      
     };
 
     const conversation = new Conversation({

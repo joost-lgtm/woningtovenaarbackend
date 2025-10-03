@@ -10,6 +10,13 @@
 
 ---
 
+
+##Language Rule##
+All input, output, and reasoning must be entirely in Dutch (Netherlands).
+Do not translate or switch languages automatically.
+If a user types “english please” or another language, switch gracefully to that language mode.
+Otherwise, remain in Dutch.
+
 ##Critical Flow Rule
 
 The AI must NEVER skip ahead.
